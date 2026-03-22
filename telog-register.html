@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telog Automation — Registration</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--accent:#1a3a6b;--accent2:#f0a500;--bg:#f4f6fb;--card:#fff;--text:#222;--muted:#6b7280;--border:#e2e8f0;--radius:10px;--font:'IBM Plex Sans',sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* HEADER */
+.header{background:var(--accent);color:#fff;padding:0;position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,.2);}
+.header-inner{max-width:880px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;gap:14px;}
+.header-logo{width:38px;height:38px;background:var(--accent2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#000;font-family:monospace;flex-shrink:0;}
+.header-brand{font-size:17px;font-weight:700;}
+.header-sub{font-size:11px;opacity:.7;margin-top:1px;}
+
+/* MAIN */
+.main{max-width:880px;margin:0 auto;padding:32px 24px;}
+
+/* TYPE SELECTOR */
+.type-selector{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:30px;}
+.type-btn{background:var(--card);border:2px solid var(--border);border-radius:var(--radius);padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s;user-select:none;}
+.type-btn:hover{border-color:var(--accent);background:#eef2ff;}
+.type-btn.active{border-color:var(--accent);background:var(--accent);color:#fff;}
+.type-btn .type-icon{font-size:22px;margin-bottom:6px;}
+.type-btn .type-label{font-size:13px;font-weight:600;}
+.type-btn .type-desc{font-size:10px;opacity:.7;margin-top:2px;}
+.type-btn.active .type-desc{opacity:.8;}
+
+/* SECTION TITLE */
+.form-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;overflow:hidden;}
+.form-section-header{padding:14px 20px;border-bottom:1px solid var(--border);background:#f8faff;display:flex;align-items:center;gap:8px;}
+.form-section-icon{font-size:16px;}
+.form-section-title{font-size:14px;font-weight:600;color:var(--accent);}
+.form-section-body{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-full{grid-column:1/-1;}
+
+/* FORM ELEMENTS */
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.form-label .req{color:#e53e3e;}
+.form-control{background:#fff;border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13.5px;font-family:var(--font);padding:9px 12px;outline:none;transition:border-color .15s;width:100%;}
+.form-control:focus{border-color:var(--accent);}
+.form-control::placeholder{color:#b0b7c3;}
+select.form-control{cursor:pointer;}
+textarea.form-control{resize:vertical;min-height:75px;}
+
+/* FILE UPLOAD */
+.file-upload{border:2px dashed var(--border);border-radius:8px;padding:12px 16px;cursor:pointer;transition:all .15s;background:#f8faff;display:flex;align-items:center;gap:10px;}
+.file-upload:hover{border-color:var(--accent);background:#eef2ff;}
+.file-upload input{display:none;}
+.file-upload-icon{font-size:20px;}
+.file-upload-text{font-size:12px;color:var(--muted);}
+.file-upload-name{font-size:12px;color:var(--accent);font-weight:500;}
+
+/* SUBMIT BUTTON */
+.submit-wrap{margin-top:24px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+.btn-submit{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:14px 48px;font-size:15px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px;}
+.btn-submit:hover:not(:disabled){background:#0f2855;transform:translateY(-1px);box-shadow:0 4px 16px rgba(26,58,107,.3);}
+.btn-submit:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.submit-note{font-size:11px;color:var(--muted);text-align:center;}
+
+/* SUCCESS */
+.success-screen{display:none;text-align:center;padding:60px 24px;}
+.success-icon{font-size:60px;margin-bottom:16px;}
+.success-title{font-size:24px;font-weight:700;color:var(--accent);margin-bottom:8px;}
+.success-sub{font-size:14px;color:var(--muted);max-width:400px;margin:0 auto;line-height:1.6;}
+.success-ref{background:#f0f7ff;border:1px solid #c3d9f5;border-radius:8px;padding:10px 18px;display:inline-block;margin-top:16px;font-family:monospace;font-size:13px;color:var(--accent);}
+
+/* PAGE TITLE */
+.page-title{margin-bottom:6px;font-size:22px;font-weight:700;color:var(--accent);}
+.page-sub{font-size:13px;color:var(--muted);margin-bottom:24px;}
+
+/* BADGE */
+.form-badge{display:inline-flex;align-items:center;gap:5px;background:#fff3cd;border:1px solid #ffc107;color:#856404;border-radius:5px;padding:3px 9px;font-size:11px;font-weight:600;margin-bottom:20px;}
+
+@media(max-width:600px){
+  .type-selector{grid-template-columns:1fr 1fr;}
+  .form-section-body{grid-template-columns:1fr;}
+  .form-full{grid-column:1;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-logo">T</div>
+    <div>
+      <div class="header-brand">Telog Automation</div>
+      <div class="header-sub">Partner & Customer Registration Portal</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div id="formSection">
+    <div class="page-title">Registration Form</div>
+    <div class="page-sub">Select your registration type below and complete the form. All submissions are reviewed by Telog Automation.</div>
+
+    <div class="type-selector" id="typeSelector">
+      <div class="type-btn active" onclick="setType('customer')" data-type="customer">
+        <div class="type-icon">🏭</div>
+        <div class="type-label">Customer</div>
+        <div class="type-desc">End client / Project owner</div>
+      </div>
+      <div class="type-btn" onclick="setType('vendor')" data-type="vendor">
+        <div class="type-icon">🚚</div>
+        <div class="type-label">Vendor</div>
+        <div class="type-desc">Material supplier</div>
+      </div>
+      <div class="type-btn" onclick="setType('supplier')" data-type="supplier">
+        <div class="type-icon">🔩</div>
+        <div class="type-label">Supplier</div>
+        <div class="type-desc">Component / panel parts</div>
+      </div>
+      <div class="type-btn" onclick="setType('contractor')" data-type="contractor">
+        <div class="type-icon">👷</div>
+        <div class="type-label">Contractor</div>
+        <div class="type-desc">Subcontractor</div>
+      </div>
+    </div>
+
+    <div class="form-badge" id="typeBadge">🏭 Registering as: Customer</div>
+
+    <!-- COMPANY DETAILS -->
+    <div class="form-section">
+      <div class="form-section-header"><span class="form-section-icon">🏢</span><span class="form-section-title">Company / Organisation Details</span></div>
+      <div class="form-section-body">
+        <div class="form-group form-full"><label class="form-label">Company Name <span class="req">*</span></label><input class="form-control" id="f-company" placeholder="Your company or business name" required></div>
+        <div class="form-group form-full"><label class="form-label">Address <span class="req">*</span></label><textarea class="form-control" id="f-address" placeholder="Street address, area..." rows="2"></textarea></div>
+        <div class="form-group"><label class="form-label">City <span class="req">*</span></label><input class="form-control" id="f-city" placeholder="e.g. Chennai"></div>
+        <div class="form-group"><label class="form-label">State</label>
+          <select class="form-control" id="f-state">
+            <option>Tamil Nadu</option><option>Andhra Pradesh</option><option>Telangana</option><option>Karnataka</option><option>Kerala</option><option>Maharashtra</option><option>Gujarat</option><option>Delhi</option><option>Rajasthan</option><option>Uttar Pradesh</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Pincode</label><input class="form-control" id="f-pincode" placeholder="600000" maxlength="6"></div>
+        <div class="form-group"><label class="form-label">Website</label><input class="form-control" id="f-website" placeholder="www.yourcompany.com"></div>
+      </div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="form-section">
+      <div class="form-section-header"><span class="form-section-icon">👤</span><span class="form-section-title">Contact Person</span></div>
+      <div class="form-section-body">
+        <div class="form-group"><label class="form-label">Contact Person Name <span class="req">*</span></label><input class="form-control" id="f-contact" placeholder="Full name"></div>
+        <div class="form-group"><label class="form-label">Designation</label><input class="form-control" id="f-designation" placeholder="e.g. Manager, Director"></div>
+        <div class="form-group"><label class="form-label">Phone Number <span class="req">*</span></label><input class="form-control" id="f-phone" placeholder="+91 XXXXXXXXXX" type="tel"></div>
+        <div class="form-group"><label class="form-label">Alternate Phone</label><input class="form-control" id="f-altphone" placeholder="+91 XXXXXXXXXX" type="tel"></div>
+        <div class="form-group form-full"><label class="form-label">Email Address</label><input class="form-control" id="f-email" placeholder="email@company.com" type="email"></div>
+      </div>
+    </div>
+
+    <!-- GST & REGISTRATION -->
+    <div class="form-section">
+      <div class="form-section-header"><span class="form-section-icon">📋</span><span class="form-section-title">Registration Details</span></div>
+      <div class="form-section-body">
+        <div class="form-group"><label class="form-label">GST Number</label><input class="form-control" id="f-gst" placeholder="33XXXXX..." maxlength="15"></div>
+        <div class="form-group"><label class="form-label">PAN Number</label><input class="form-control" id="f-pan" placeholder="ABCDE1234F" maxlength="10"></div>
+        <div class="form-group form-full"><label class="form-label" id="categoryLabel">Category / Industry</label>
+          <select class="form-control" id="f-category"></select>
+        </div>
+        <div class="form-group form-full"><label class="form-label" id="spLabel">Products / Services Offered</label><textarea class="form-control" id="f-sp" placeholder="Describe your products or services..." rows="2"></textarea></div>
+      </div>
+    </div>
+
+    <!-- BANK DETAILS -->
+    <div class="form-section">
+      <div class="form-section-header"><span class="form-section-icon">🏦</span><span class="form-section-title">Bank Details</span></div>
+      <div class="form-section-body">
+        <div class="form-group"><label class="form-label">Bank Name</label><input class="form-control" id="f-bank" placeholder="e.g. State Bank of India"></div>
+        <div class="form-group"><label class="form-label">Account Number</label><input class="form-control" id="f-account" placeholder="XXXXXXXXXXXXXXXXX"></div>
+        <div class="form-group"><label class="form-label">IFSC Code</label><input class="form-control" id="f-ifsc" placeholder="SBIN0001234"></div>
+        <div class="form-group"><label class="form-label">Branch</label><input class="form-control" id="f-branch" placeholder="Branch name"></div>
+      </div>
+    </div>
+
+    <!-- DOCUMENTS -->
+    <div class="form-section">
+      <div class="form-section-header"><span class="form-section-icon">📎</span><span class="form-section-title">Document Upload</span></div>
+      <div class="form-section-body">
+        <div class="form-group">
+          <label class="form-label">GST Certificate (PDF/Image)</label>
+          <div class="file-upload" onclick="document.getElementById('doc-gst').click()">
+            <input type="file" id="doc-gst" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileLabel(this,'gst-label')">
+            <span class="file-upload-icon">📄</span>
+            <span class="file-upload-name" id="gst-label">Click to upload</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">PAN Card (PDF/Image)</label>
+          <div class="file-upload" onclick="document.getElementById('doc-pan').click()">
+            <input type="file" id="doc-pan" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileLabel(this,'pan-label')">
+            <span class="file-upload-icon">🪪</span>
+            <span class="file-upload-name" id="pan-label">Click to upload</span>
+          </div>
+        </div>
+        <div class="form-group form-full">
+          <label class="form-label">Other Document (Company Profile, Catalogue, etc.)</label>
+          <div class="file-upload" onclick="document.getElementById('doc-other').click()">
+            <input type="file" id="doc-other" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileLabel(this,'other-label')">
+            <span class="file-upload-icon">📁</span>
+            <span class="file-upload-name" id="other-label">Click to upload (optional)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="submit-wrap">
+      <button class="btn-submit" id="submitBtn" onclick="submitForm()">
+        <span>Submit Registration</span>
+        <span>→</span>
+      </button>
+      <div class="submit-note">Your registration will be reviewed by Telog Automation. You will be contacted once approved.</div>
+    </div>
+  </div>
+
+  <!-- SUCCESS SCREEN -->
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">✅</div>
+    <div class="success-title">Registration Submitted!</div>
+    <div class="success-sub">Thank you for registering with Telog Automation. Your application has been received and will be reviewed shortly. We will reach out to you via the contact details provided.</div>
+    <div class="success-ref" id="successRef"></div>
+    <br><br>
+    <button onclick="resetForm()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:14px;cursor:pointer;font-family:var(--font)">Submit Another Registration</button>
+  </div>
+</div>
+
+<script>
+const SURL = 'https://nwbqulnrlhagzjugyfce.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53YnF1bG5ybGhhZ3pqdWd5ZmNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxOTU3OTUsImV4cCI6MjA4OTc3MTc5NX0.frygdGvSoxfnummqdkXiWDDbrHqqZE5kg9GKiJwY_h4';
+const sb = window.supabase.createClient(SURL, SKEY);
+const BUCKET = 'telog-assets';
+
+let currentType = 'customer';
+
+const typeConfig = {
+  customer: {
+    badge: '🏭 Registering as: Customer',
+    categoryLabel: 'Industry / Sector',
+    spLabel: 'Project Requirements / Products Needed',
+    categories: ['Refinery / Oil & Gas','Power / Energy','Cement / Mining','Food & Beverage','Pharmaceuticals','Packaging','Material Handling','EPC / Engineering','Water Treatment','Other']
+  },
+  vendor: {
+    badge: '🚚 Registering as: Vendor',
+    categoryLabel: 'Product / Supply Category',
+    spLabel: 'Products / Materials Supplied',
+    categories: ['Electrical Components','Cable & Wiring','Switchgear','Drives & Automation','Panel Hardware','Structural / Enclosures','Tools & Consumables','Other']
+  },
+  supplier: {
+    badge: '🔩 Registering as: Supplier',
+    categoryLabel: 'Component Category',
+    spLabel: 'Components / Parts Supplied',
+    categories: ['PLC / SCADA Hardware','Siemens Products','Schneider Products','ABB Products','Allen Bradley','HMI / Panel PCs','Sensors & Instruments','Relays & Contactors','MCCB / MCB','VFD / Drives','Other']
+  },
+  contractor: {
+    badge: '👷 Registering as: Contractor',
+    categoryLabel: 'Type of Work',
+    spLabel: 'Services / Works Offered',
+    categories: ['Electrical Installation','Panel Wiring','Cable Laying','Civil Work','HVAC','Mechanical Fabrication','Instrumentation','IT / Networking','Other']
+  }
+};
+
+function setType(t) {
+  currentType = t;
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === t));
+  const cfg = typeConfig[t];
+  document.getElementById('typeBadge').textContent = cfg.badge;
+  document.getElementById('categoryLabel').textContent = cfg.categoryLabel;
+  document.getElementById('spLabel').textContent = cfg.spLabel;
+  const sel = document.getElementById('f-category');
+  sel.innerHTML = '<option value="">— Select —</option>' + cfg.categories.map(c=>`<option>${c}</option>`).join('');
+}
+
+function updateFileLabel(input, labelId) {
+  const f = input.files[0];
+  document.getElementById(labelId).textContent = f ? f.name : 'Click to upload';
+}
+
+async function uploadDoc(file, folder) {
+  if (!file) return null;
+  const path = `${folder}/${Date.now()}_${file.name.replace(/[^a-z0-9._-]/gi,'_')}`;
+  const { error } = await sb.storage.from(BUCKET).upload(path, file, { upsert: true });
+  if (error) throw error;
+  const { data } = sb.storage.from(BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+async function submitForm() {
+  const company = document.getElementById('f-company').value.trim();
+  const contact = document.getElementById('f-contact').value.trim();
+  const phone   = document.getElementById('f-phone').value.trim();
+  const city    = document.getElementById('f-city').value.trim();
+  const address = document.getElementById('f-address').value.trim();
+
+  if (!company) { alert('Company name is required'); return; }
+  if (!contact) { alert('Contact person name is required'); return; }
+  if (!phone)   { alert('Phone number is required'); return; }
+  if (!city)    { alert('City is required'); return; }
+  if (!address) { alert('Address is required'); return; }
+
+  const btn = document.getElementById('submitBtn'); btn.disabled = true; btn.querySelector('span').textContent = 'Uploading documents...';
+
+  try {
+    const gstFile   = document.getElementById('doc-gst').files[0];
+    const panFile   = document.getElementById('doc-pan').files[0];
+    const otherFile = document.getElementById('doc-other').files[0];
+
+    const [doc_gst_url, doc_pan_url, doc_other_url] = await Promise.all([
+      uploadDoc(gstFile,   'registrations/gst'),
+      uploadDoc(panFile,   'registrations/pan'),
+      uploadDoc(otherFile, 'registrations/other')
+    ]);
+
+    btn.querySelector('span').textContent = 'Submitting...';
+
+    const record = {
+      type: currentType,
+      company_name:    company,
+      address:         address,
+      city:            city,
+      state:           document.getElementById('f-state').value,
+      pincode:         document.getElementById('f-pincode').value,
+      contact_person:  contact,
+      designation:     document.getElementById('f-designation').value,
+      phone:           phone,
+      alternate_phone: document.getElementById('f-altphone').value,
+      email:           document.getElementById('f-email').value,
+      website:         document.getElementById('f-website').value,
+      gst_number:      document.getElementById('f-gst').value,
+      pan_number:      document.getElementById('f-pan').value,
+      category:        document.getElementById('f-category').value,
+      services_products: document.getElementById('f-sp').value,
+      bank_name:       document.getElementById('f-bank').value,
+      bank_account:    document.getElementById('f-account').value,
+      bank_ifsc:       document.getElementById('f-ifsc').value,
+      bank_branch:     document.getElementById('f-branch').value,
+      doc_gst_url, doc_pan_url, doc_other_url,
+      status: 'pending'
+    };
+
+    const { data, error } = await sb.from('registrations').insert(record).select('id').single();
+    if (error) throw error;
+
+    document.getElementById('formSection').style.display = 'none';
+    document.getElementById('successScreen').style.display = 'block';
+    document.getElementById('successRef').textContent = 'Reference ID: ' + (data.id||'').slice(0,8).toUpperCase();
+  } catch(err) {
+    alert('Submission failed: ' + err.message);
+    btn.disabled = false; btn.querySelector('span').textContent = 'Submit Registration';
+  }
+}
+
+function resetForm() {
+  document.getElementById('formSection').style.display = '';
+  document.getElementById('successScreen').style.display = 'none';
+  document.querySelectorAll('.form-control').forEach(el => { if (el.tagName!=='SELECT') el.value=''; });
+  document.getElementById('submitBtn').disabled = false;
+  document.getElementById('submitBtn').querySelector('span').textContent = 'Submit Registration';
+  setType('customer');
+  window.scrollTo(0,0);
+}
+
+// Init
+setType('customer');
+</script>
+</body>
+</html>
